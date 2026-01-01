@@ -46,3 +46,6 @@ npm-debug.log*
 
 # Build outputs
 frontend/dist/
+
+# AI Codeing
+agent/
