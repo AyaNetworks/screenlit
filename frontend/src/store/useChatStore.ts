@@ -2,6 +2,8 @@ import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 import type { ChatSession, Message, Attachment, Workspace, ReplyContext, ChatMember } from '../types'
 import { apiClient } from '../api/client'
+import { useLayoutStore } from './useLayoutStore'
+import { useWorkspaceStore } from './useWorkspaceStore'
 
 // Initialize with empty session
 const initialChatSessions: ChatSession[] = [
@@ -63,6 +65,30 @@ export const useChatStore = create<ChatStoreState>()(
             if (get().isConnected) return;
             
             apiClient.connectToStream((message: any) => {
+                // Handle special message types
+                if (message.type === 'layout_update') {
+                    useLayoutStore.getState().setLayoutMode(message.mode);
+                    useLayoutStore.getState().setSidebarVisible(message.sidebar_visible);
+                    return;
+                }
+
+                if (message.type === 'artifact_update') {
+                    const { action, artifact } = message;
+                    if (action === 'create') {
+                        useWorkspaceStore.getState().addArtifact({
+                            id: artifact.id,
+                            title: artifact.title,
+                            content: artifact.content,
+                            type: artifact.type
+                        });
+                        // Switch layout to show artifact if needed
+                        useLayoutStore.getState().setLayoutMode('artifact_right');
+                    } else if (action === 'update') {
+                         useWorkspaceStore.getState().updateArtifactContent(artifact.id, artifact.content);
+                    }
+                    return;
+                }
+
                 // Determine message type and format if needed
                 // The backend sends Message objects.
                 // We need to append it to the current chat.

@@ -62,9 +62,17 @@ export const useAuthStore = create<AuthStoreState>()(
   devtools(
     persist(
       (set, get) => ({
-        user: null,
-        accessToken: null,
-        refreshToken: null,
+        user: {
+            id: 1,
+            email: 'demo@example.com',
+            displayName: 'Demo User',
+            theme: 'dark',
+            role: 'user',
+            createdAt: new Date().toISOString(),
+            preferences: {},
+        },
+        accessToken: 'mock_token_1',
+        refreshToken: 'mock_refresh_token_1',
         isLoading: false,
         error: null,
         mockUsers: initialMockUsers,

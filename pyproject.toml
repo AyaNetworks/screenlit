@@ -1,7 +1,15 @@
 [project]
 name = "screenlit"
 version = "0.1.0"
-description = "Add your description here"
+description = "Screenlit: Artifact-First AI Application Framework"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "pydantic"
+]
+
+[tool.setuptools.packages.find]
+include = ["screenlit*"]
+exclude = ["frontend*", "tests*"]
