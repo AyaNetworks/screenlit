@@ -1,0 +1,233 @@
+.stats-panel {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  height: 48px;
+  padding: 0 1rem;
+  border-top: 1px solid rgba(100, 108, 255, 0.2);
+  background-color: rgba(32, 32, 32, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  flex-shrink: 0;
+  gap: 1rem;
+  overflow: hidden;
+}
+
+/* Ensure publish toggle button has minimum width to prevent line breaks */
+.stats-panel .button-variant-toggle.published,
+.stats-panel .button-variant-toggle.private {
+  min-width: 85px;
+  padding: 0.3rem 0.5rem;
+}
+
+/* Reduce spacing in like button to make it more compact */
+.stats-panel .button-variant-toggle:not(.published):not(.private) {
+  gap: 0.15rem;
+  padding: 0.3rem 0.5rem;
+}
+
+/* Align heart icon vertically in like button */
+.stats-panel .button-variant-toggle:not(.published):not(.private) .stat-icon {
+  position: relative;
+  top: 1px;
+  margin-right: 0.15rem;
+}
+
+.stats-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+.stat-icon {
+  color: rgba(100, 150, 255, 0.7);
+  flex-shrink: 0;
+}
+
+.stat-label {
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.stat-value {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(100, 150, 255, 1);
+  min-width: 2.2rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-divider {
+  height: 20px;
+  width: 1px;
+  background-color: rgba(100, 108, 255, 0.25);
+  margin: 0 0.5rem;
+}
+
+/* Like Button */
+.like-button {
+  display: flex;
+  align-items: center;
+  gap: 0.1rem;
+  white-space: nowrap;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.4rem 0.75rem;
+  transition: all 0.2s ease;
+  outline: none;
+  border-radius: 6px;
+}
+
+.like-button:hover {
+  transform: scale(1.05);
+}
+
+.like-button:active {
+  transform: scale(0.95);
+}
+
+.like-button:focus {
+  outline: none;
+}
+
+.like-button .stat-icon {
+  transition: all 0.2s ease;
+}
+
+.like-button.liked .stat-icon.liked-heart {
+  color: rgba(255, 100, 100, 1);
+  fill: rgba(255, 100, 100, 0.8);
+}
+
+/* Publish Toggle Button */
+.publish-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  border: none;
+  background-color: rgba(100, 150, 255, 0.08);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  font-weight: 500;
+  outline: none;
+  min-width: 100px;
+}
+
+.publish-toggle:focus {
+  outline: none;
+}
+
+.publish-toggle.published {
+  color: rgba(100, 150, 255, 1);
+}
+
+.publish-toggle.published:hover {
+  background-color: rgba(100, 150, 255, 0.15);
+  box-shadow: 0 0 10px rgba(100, 150, 255, 0.3);
+}
+
+.publish-toggle.private {
+  color: rgba(255, 150, 100, 1);
+}
+
+.publish-toggle.private:hover {
+  background-color: rgba(255, 150, 100, 0.15);
+  box-shadow: 0 0 10px rgba(255, 150, 100, 0.3);
+}
+
+.publish-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.publish-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Light Theme */
+.light-theme .stats-panel {
+  background-color: rgba(240, 245, 255, 0.6);
+  border-top: 1px solid rgba(100, 108, 255, 0.3);
+}
+
+.light-theme .stat-icon {
+  color: rgba(83, 120, 242, 0.7);
+}
+
+.light-theme .stat-label {
+  color: rgba(51, 51, 51, 0.7);
+}
+
+.light-theme .stat-value {
+  color: rgba(83, 120, 242, 1);
+}
+
+.light-theme .stat-divider {
+  background-color: rgba(100, 108, 255, 0.3);
+}
+
+/* Light Theme - Like Button */
+.light-theme .like-button.liked .stat-icon.liked-heart {
+  color: rgba(220, 50, 50, 1);
+  fill: rgba(220, 50, 50, 0.8);
+}
+
+/* Light Theme - Publish Toggle */
+.light-theme .publish-toggle {
+  background-color: rgba(100, 150, 255, 0.1);
+}
+
+.light-theme .publish-toggle.published {
+  color: rgba(83, 120, 242, 1);
+}
+
+.light-theme .publish-toggle.published:hover {
+  background-color: rgba(100, 150, 255, 0.2);
+  box-shadow: 0 0 10px rgba(100, 150, 255, 0.25);
+}
+
+.light-theme .publish-toggle.private {
+  color: rgba(220, 100, 50, 1);
+}
+
+.light-theme .publish-toggle.private:hover {
+  background-color: rgba(255, 150, 100, 0.2);
+  box-shadow: 0 0 10px rgba(255, 150, 100, 0.25);
+}
+
+/* Hover effect for stat items */
+.stat-item:hover .stat-label {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.stat-item:hover .stat-icon {
+  color: rgba(100, 150, 255, 1);
+}
+
+.light-theme .stat-item:hover .stat-label {
+  color: rgba(51, 51, 51, 0.9);
+}
+
+.light-theme .stat-item:hover .stat-icon {
+  color: rgba(83, 120, 242, 1);
+}
