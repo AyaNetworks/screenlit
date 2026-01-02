@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 import ChatPanel from './components/ChatPanel'
 import DocumentPanel from './components/DocumentPanel'
@@ -33,8 +33,10 @@ function App() {
   const setCurrentArtifactId = useWorkspaceStore((state) => state.setCurrentArtifactId)
 
   // Set default artifact if none exists
+  const initialized = useRef(false)
   useEffect(() => {
-      if (scratchpadTabs.length === 0) {
+      if (!initialized.current && scratchpadTabs.length === 0) {
+          initialized.current = true
           addArtifact({
               id: 1,
               title: 'Welcome to Screenlit',

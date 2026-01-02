@@ -77,6 +77,8 @@ export const useChatStore = create<ChatStoreState>()(
                     if (action === 'create') {
                         let fileType = 'text/markdown';
                         if (artifact.type === 'image') fileType = 'image/png';
+                        else if (artifact.type === 'video') fileType = 'video/mp4';
+                        else if (artifact.type === 'audio') fileType = 'audio/mpeg';
                         else if (artifact.type === 'csv') fileType = 'text/csv';
                         else if (artifact.type === 'pdf') fileType = 'application/pdf';
                         else if (artifact.type === 'html') fileType = 'text/html';
