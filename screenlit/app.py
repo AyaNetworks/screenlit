@@ -39,6 +39,15 @@ class ScreenlitApp:
         msg = Message(role=role, content=content)
         await broadcast_message(msg)
 
+    def set_header(self, title: str, subtitle: str):
+        """Sets the application header title and subtitle."""
+        self.layout.set_header(title, subtitle)
+
+    async def think(self, content: str):
+        """Sends a 'thinking' message to the frontend."""
+        msg = Message(role="ai", content=content, type="thought")
+        await broadcast_message(msg)
+
     def run(self, host="0.0.0.0", port=8000):
         # Check if running via CLI to avoid double execution
         import os

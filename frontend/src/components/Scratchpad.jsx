@@ -22,7 +22,7 @@ import PublishNotification from './PublishNotification'
 import DionePowersScreen from './DionePowersScreen'
 import StatsPanel from './StatsPanel'
 import Button from './ui/Button'
-import { useThemeStore } from '../store'
+import { useThemeStore, useLayoutStore } from '../store'
 import './Scratchpad.css'
 
 function Scratchpad({
@@ -59,6 +59,7 @@ function Scratchpad({
   const [attachmentNotification, setAttachmentNotification] = useState(false)
   const [showDionePowersScreen, setShowDionePowersScreen] = useState(false)
   const theme = useThemeStore((state) => state.theme)
+  const { headerTitle, headerSubtitle } = useLayoutStore()
   const editorRef = useRef(null)
   const previewRef = useRef(null)
   const artifactMenuRef = useRef(null)
@@ -425,6 +426,37 @@ function Scratchpad({
       )
     }
 
+    // Video files
+    if (fileType?.startsWith('video/') || ['mp4', 'webm', 'ogg'].includes(fileType?.split('/')[1])) {
+      return (
+        <div className="file-preview-video-container">
+          <video
+            controls
+            src={content || currentTab.filePath}
+            className="file-preview-video"
+            style={{ maxWidth: '100%', maxHeight: '100%' }}
+          >
+            Your browser does not support the video tag.
+          </video>
+        </div>
+      )
+    }
+
+    // Audio files
+    if (fileType?.startsWith('audio/') || ['mp3', 'wav', 'ogg'].includes(fileType?.split('/')[1])) {
+      return (
+        <div className="file-preview-audio-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+          <audio
+            controls
+            src={content || currentTab.filePath}
+            className="file-preview-audio"
+          >
+            Your browser does not support the audio tag.
+          </audio>
+        </div>
+      )
+    }
+
     // CSV files
     if (fileType === 'text/csv' || fileType === 'file/csv') {
       try {
@@ -505,9 +537,9 @@ function Scratchpad({
       {/* Header */}
       <div className="scratchpad-header">
         <div className="scratchpad-title-section">
-          <h2>Dione Workspaces</h2>
+          <h2>{headerTitle}</h2>
           <span className="scratchpad-subtitle">
-            An AI driven operational platform by Eisuke Izawa.
+            {headerSubtitle}
           </span>
         </div>
       </div>
