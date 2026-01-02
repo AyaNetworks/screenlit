@@ -10,6 +10,15 @@ run = _app_instance.run
 layout = _app_instance.layout
 artifacts = _app_instance.artifacts
 
+# Expose artifact helper methods
+html = artifacts.html
+image = artifacts.image
+video = artifacts.video
+audio = artifacts.audio
+csv = artifacts.csv
+pdf = artifacts.pdf
+code = artifacts.code
+
 # Helper for sending messages from user code
 async def send_message(content: str, role: str = "ai"):
     msg = Message(role=role, content=content)

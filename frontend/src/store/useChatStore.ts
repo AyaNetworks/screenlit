@@ -75,11 +75,21 @@ export const useChatStore = create<ChatStoreState>()(
                 if (message.type === 'artifact_update') {
                     const { action, artifact } = message;
                     if (action === 'create') {
+                        let fileType = 'text/markdown';
+                        if (artifact.type === 'image') fileType = 'image/png';
+                        else if (artifact.type === 'video') fileType = 'video/mp4';
+                        else if (artifact.type === 'audio') fileType = 'audio/mpeg';
+                        else if (artifact.type === 'csv') fileType = 'text/csv';
+                        else if (artifact.type === 'pdf') fileType = 'application/pdf';
+                        else if (artifact.type === 'html') fileType = 'text/html';
+                        else if (artifact.type === 'code') fileType = 'application/json'; // Triggers code view
+
                         useWorkspaceStore.getState().addArtifact({
                             id: artifact.id,
                             title: artifact.title,
                             content: artifact.content,
-                            type: artifact.type
+                            type: artifact.type,
+                            fileType: fileType
                         });
                         // Switch layout to show artifact if needed
                         useLayoutStore.getState().setLayoutMode('artifact_right');
