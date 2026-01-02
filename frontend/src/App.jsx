@@ -8,130 +8,41 @@ import LoginScreen from './components/LoginScreen'
 import './App.css'
 
 // Import Zustand stores
-import { useChatStore, useProjectStore, useThemeStore, useWorkspaceStore, useAuthStore } from './store'
+import { useChatStore, useProjectStore, useThemeStore, useWorkspaceStore, useAuthStore, useLayoutStore } from './store'
 
 function App() {
   // Zustand stores - replaces useState for global state
   const theme = useThemeStore((state) => state.theme)
   const user = useAuthStore((state) => state.user)
+  const layoutMode = useLayoutStore((state) => state.layoutMode)
+  const sidebarVisible = useLayoutStore((state) => state.sidebarVisible)
   const [isHydrated, setIsHydrated] = useState(false)
 
   // Check if Zustand store is hydrated from localStorage
   useEffect(() => {
     setIsHydrated(true)
+    // Connect to backend session
+    useChatStore.getState().connectToSession()
   }, [])
 
-  // Keep local state for scratchpad and documents (can migrate later if needed)
-  const [scratchpadTabs, setScratchpadTabs] = useState([
-    {
-      id: 1,
-      title: 'Q2 Marketing Analysis Report',
-      content: `# Q2 Marketing Analysis Report
+  // Use Zustand store for artifacts (scratchpad tabs)
+  const scratchpadTabs = useWorkspaceStore((state) => state.artifacts)
+  const currentScratchpadTabId = useWorkspaceStore((state) => state.currentArtifactId)
+  const addArtifact = useWorkspaceStore((state) => state.addArtifact)
+  const updateArtifactContent = useWorkspaceStore((state) => state.updateArtifactContent)
+  const setCurrentArtifactId = useWorkspaceStore((state) => state.setCurrentArtifactId)
 
-## Executive Summary
-
-### Key KPIs
-- **Total Impressions**: 2,500,000
-- **Clicks**: 80,000
-- **Click-Through Rate**: 3.2%
-- **Conversions**: 1,440
-- **Conversion Rate**: 1.8%
-- **Total Ad Spend**: $19,600
-- **ROI**: 185%
-
----
-
-## Channel Performance
-
-### 📧 Email Campaign ⭐ **Top Performer**
-- Impressions: 450,000
-- Click-Through Rate: 4.8%
-- Conversion Rate: 2.5%
-- ROI: **420%**
-- **Recommended Action**: Increase budget by 30%
-
-### 📱 Social Media
-- Impressions: 1,200,000
-- Clicks: 89,000 (highest)
-- Click-Through Rate: 2.1%
-- Conversion Rate: 1.2%
-- ROI: 150%
-
-### 📺 Display Ads
-- Impressions: 850,000
-- CPC: $180 (lowest)
-- ROI: 120%
-
----
-
-## Q3 Recommendations
-
-1. **Budget Optimization**: Allocate 45% to Email, 40% to Social, 15% to Display
-2. **Personalization**: Execute campaigns based on optimal send times by segment
-3. **A/B Testing**: Continue testing subject lines and image patterns
-4. **Automation**: Design drip campaigns for high-engagement segments
-
-**Expected Outcome**: 20-25% improvement in overall ROI`,
-      history: [''],
-      historyIndex: 0,
-    },
-    {
-      id: 2,
-      title: 'Customer Segment Analysis Note',
-      content: `# Customer Segment Analysis Note
-
-## VIP Tier Characteristics (LTV $342,000)
-
-### Purchasing Behavior
-- Monthly Purchase Frequency: 8.2 times
-- Average Order Value: $28,500
-- Repeat Rate: 92%
-- Churn Rate: 0.8%/month
-
-### Communication Preferences
-- Email Open Rate: 76%
-- SMS Open Rate: 89%
-- Push Notification Open Rate: 71%
-
-### Recommendations
-- Launch VIP-exclusive membership program
-- Implement dedicated concierge service
-- Host premium product previews bi-weekly
-- Provide customized gift offerings
-
----
-
-## Standard Tier Optimization Strategy
-
-### Objective
-Implement strategies to upgrade standard tier customers to VIP tier
-
-### KPIs
-- Upgrade Rate: Current 4% → Target 8%
-- Average Order Value: $8,200 → $12,500
-- Annual LTV: $98,400 → $150,000
-
-### Action Items
-1. Implement personalized recommendation engine
-2. Establish loyalty program tier system
-3. Grant exclusive product access rights
-
----
-
-## Dormant Customer Reactivation
-
-### Target Audience
-No purchases in past 90 days: 12,400 customers
-
-### Initiatives
-- Win-back campaigns (2x per week)
-- Return incentive codes (15-25% discount)
-- Personalized product recommendations`,
-      history: [''],
-      historyIndex: 0,
-    },
-  ])
-  const [currentScratchpadTabId, setCurrentScratchpadTabId] = useState(1)
+  // Set default artifact if none exists
+  useEffect(() => {
+      if (scratchpadTabs.length === 0) {
+          addArtifact({
+              id: 1,
+              title: 'Welcome to Screenlit',
+              content: '# Welcome\n\nThis is your scratchpad. AI-generated artifacts will appear here.',
+              type: 'markdown'
+          })
+      }
+  }, [scratchpadTabs.length, addArtifact])
   const [documents, setDocuments] = useState([
     {
       id: 1,
@@ -367,289 +278,40 @@ No purchases in past 90 days: 12,400 customers
   // handleAddChatToProject, handleRemoveChatFromProject
   // toggleTheme, attachedWorkspaces handlers
 
-  const handleSendMessage_OLD = (userMessage, attachments = [], replyContext = null) => {
-    const updatedSessions = chatSessions.map((chat) => {
-      if (chat.id === currentChatId) {
-        const newMessage = {
-          role: 'user',
-          content: userMessage,
-          timestamp: new Date().toISOString(),
-        }
+  // Scratchpad handlers (delegated to store or specialized local handling)
+  // For undo/redo, we might need to move that logic to the store or keep using the store actions.
+  // The current store implementation supports basic update.
+  // Undo/redo would require store support, but for MVP we focus on content update.
 
-        // Add reply context if replying to a message
-        if (replyContext && replyContext.replyingToContent) {
-          newMessage.replyingTo = replyContext.replyingToContent
-        }
-
-        // Add attached workspaces if any
-        if (
-          replyContext &&
-          replyContext.attachedWorkspaces &&
-          replyContext.attachedWorkspaces.length > 0
-        ) {
-          newMessage.attachedWorkspaces = replyContext.attachedWorkspaces
-        }
-
-        // Add attachments if any
-        if (attachments.length > 0) {
-          newMessage.attachments = attachments.map((file) => ({
-            name: file.name,
-            size: file.size,
-            type: file.type,
-            preview: file.preview,
-          }))
-
-          // Add attachments to libraries (uploaded documents)
-          const newLibraries = attachments.map((file) => ({
-            id: Date.now() + Math.random(),
-            name: file.name,
-            type: 'library',
-            content: '',
-            file: file.file,
-            filePath: `Uploaded from chat at ${new Date().toLocaleString('ja-JP')}`,
-            tags: {
-              source: 'chat',
-              uploadedAt: new Date().toISOString(),
-              fileType: file.type,
-            },
-          }))
-
-          setLibraries((prevLibs) => [...prevLibs, ...newLibraries])
-        }
-
-        const newMessages = [...chat.messages, newMessage]
-
-        // Update title if this is the first message
-        const title =
-          chat.messages.length === 0
-            ? (userMessage || 'ファイル添付').substring(0, 30) +
-              ((userMessage || 'ファイル添付').length > 30 ? '...' : '')
-            : chat.title
-
-        return { ...chat, messages: newMessages, title }
-      }
-      return chat
-    })
-
-    setChatSessions(updatedSessions)
-
-    // Simple AI response logic
-    setTimeout(() => {
-      let aiResponse = ''
-      const lowerMessage = userMessage.toLowerCase()
-
-      if (lowerMessage.includes('scratchpad')) {
-        aiResponse = 'Updated scratchpad.'
-        handleScratchpadUpdate(
-          scratchpadTabs.find((tab) => tab.id === currentScratchpadTabId)?.content +
-            '\n// AI generated content\n' +
-            userMessage
-        )
-      } else if (lowerMessage.includes('hello')) {
-        aiResponse = 'Hello! How can I help you?'
-      } else {
-        aiResponse = 'Thank you for your question. As a simple AI, I can only provide basic responses.'
-      }
-
-      setChatSessions((prevSessions) =>
-        prevSessions.map((chat) => {
-          if (chat.id === currentChatId) {
-            return {
-              ...chat,
-              messages: [
-                ...chat.messages,
-                {
-                  role: 'ai',
-                  type: 'dione',
-                  status: 'success',
-                  content: aiResponse,
-                  timestamp: new Date().toISOString(),
-                },
-              ],
-            }
-          }
-          return chat
-        })
-      )
-    }, 500)
-  }
-
-  const handleNewChat = () => {
-    const newChat = {
-      id: Date.now(),
-      title: 'New Chat',
-      messages: [],
-      createdAt: new Date().toISOString(),
-    }
-    setChatSessions([newChat, ...chatSessions])
-    setCurrentChatId(newChat.id)
-  }
-
-  const handleSelectChat = (chatId) => {
-    setCurrentChatId(chatId)
-  }
-
-  const handleDeleteChat = (chatId) => {
-    const filteredSessions = chatSessions.filter((chat) => chat.id !== chatId)
-
-    if (filteredSessions.length === 0) {
-      // Create a new empty chat if all are deleted
-      const newChat = {
-        id: Date.now(),
-        title: 'New Chat',
-        messages: [],
-        createdAt: new Date().toISOString(),
-      }
-      setChatSessions([newChat])
-      setCurrentChatId(newChat.id)
-    } else {
-      setChatSessions(filteredSessions)
-      if (currentChatId === chatId) {
-        setCurrentChatId(filteredSessions[0].id)
-      }
-    }
-  }
-
-  // Chat Project handlers
-  const handleCreateProject = (projectName) => {
-    const newProject = {
-      id: Date.now(),
-      name: projectName || 'New Project',
-      chatIds: [],
-      createdAt: new Date().toISOString(),
-    }
-    setChatProjects([...chatProjects, newProject])
-  }
-
-  const handleDeleteProject = (projectId) => {
-    setChatProjects(chatProjects.filter((p) => p.id !== projectId))
-  }
-
-  const handleRenameProject = (projectId, newName) => {
-    setChatProjects(chatProjects.map((p) => (p.id === projectId ? { ...p, name: newName } : p)))
-  }
-
-  const handleAddChatToProject = (chatId, projectId) => {
-    setChatProjects(
-      chatProjects.map((p) => {
-        if (p.id === projectId && !p.chatIds.includes(chatId)) {
-          return { ...p, chatIds: [...p.chatIds, chatId] }
-        }
-        return p
-      })
-    )
-    // Update chat to include projectId
-    setChatSessions(
-      chatSessions.map((chat) => (chat.id === chatId ? { ...chat, projectId } : chat))
-    )
-  }
-
-  const handleRemoveChatFromProject = (chatId) => {
-    // Remove projectId from chat
-    setChatSessions(
-      chatSessions.map((chat) => (chat.id === chatId ? { ...chat, projectId: null } : chat))
-    )
-    // Update project to remove chatId
-    setChatProjects(
-      chatProjects.map((p) => ({
-        ...p,
-        chatIds: p.chatIds.filter((id) => id !== chatId),
-      }))
-    )
-  }
-
-  // Scratchpad handlers
   const handleScratchpadUpdate = (newContent) => {
-    setScratchpadTabs((prevTabs) =>
-      prevTabs.map((tab) => {
-        if (tab.id === currentScratchpadTabId) {
-          const newHistory = tab.history.slice(0, tab.historyIndex + 1)
-          newHistory.push(newContent)
-          return {
-            ...tab,
-            content: newContent,
-            history: newHistory,
-            historyIndex: newHistory.length - 1,
-          }
-        }
-        return tab
-      })
-    )
+      updateArtifactContent(currentScratchpadTabId, newContent);
   }
 
-  const handleScratchpadUndo = () => {
-    setScratchpadTabs((prevTabs) =>
-      prevTabs.map((tab) => {
-        if (tab.id === currentScratchpadTabId && tab.historyIndex > 0) {
-          const newIndex = tab.historyIndex - 1
-          return {
-            ...tab,
-            content: tab.history[newIndex],
-            historyIndex: newIndex,
-          }
-        }
-        return tab
-      })
-    )
-  }
-
-  const handleScratchpadRedo = () => {
-    setScratchpadTabs((prevTabs) =>
-      prevTabs.map((tab) => {
-        if (tab.id === currentScratchpadTabId && tab.historyIndex < tab.history.length - 1) {
-          const newIndex = tab.historyIndex + 1
-          return {
-            ...tab,
-            content: tab.history[newIndex],
-            historyIndex: newIndex,
-          }
-        }
-        return tab
-      })
-    )
-  }
+  // Placeholder handlers for features not yet fully migrated to store or less critical for MVP
+  const handleScratchpadUndo = () => { console.log("Undo not implemented yet in store"); }
+  const handleScratchpadRedo = () => { console.log("Redo not implemented yet in store"); }
 
   const handleNewScratchpadTab = () => {
-    const newTab = {
-      id: Date.now(),
-      title: `Untitled ${scratchpadTabs.length + 1}`,
-      content: '',
-      history: [''],
-      historyIndex: 0,
-    }
-    setScratchpadTabs([...scratchpadTabs, newTab])
-    setCurrentScratchpadTabId(newTab.id)
+    addArtifact({
+        id: Date.now(),
+        title: `Untitled ${scratchpadTabs.length + 1}`,
+        content: '',
+        type: 'markdown'
+    });
   }
 
   const handleSelectScratchpadTab = (tabId) => {
-    setCurrentScratchpadTabId(tabId)
+    setCurrentArtifactId(tabId);
   }
 
   const handleCloseScratchpadTab = (tabId) => {
-    const filteredTabs = scratchpadTabs.filter((tab) => tab.id !== tabId)
-
-    if (filteredTabs.length === 0) {
-      const newTab = {
-        id: Date.now(),
-        title: 'Untitled 1',
-        content: '',
-        history: [''],
-        historyIndex: 0,
-      }
-      setScratchpadTabs([newTab])
-      setCurrentScratchpadTabId(newTab.id)
-    } else {
-      setScratchpadTabs(filteredTabs)
-      if (currentScratchpadTabId === tabId) {
-        setCurrentScratchpadTabId(filteredTabs[0].id)
-      }
-    }
+      // Not implemented in store yet
+      console.log("Close tab not implemented");
   }
 
   const handleRenameScratchpadTab = (tabId, newTitle) => {
-    setScratchpadTabs((prevTabs) =>
-      prevTabs.map((tab) => (tab.id === tabId ? { ...tab, title: newTitle } : tab))
-    )
+      // Not implemented in store yet
+      console.log("Rename tab not implemented");
   }
 
   const handleUploadLibrary = (file) => {
@@ -692,18 +354,14 @@ No purchases in past 90 days: 12,400 customers
   }
 
   const handleAddToScratchpad = (documentData) => {
-    const newTab = {
-      id: Date.now(),
-      title: documentData.title,
-      content: documentData.content,
-      fileType: documentData.fileType,
-      fileName: documentData.fileName,
-      filePath: documentData.filePath,
-      history: [documentData.content],
-      historyIndex: 0,
-    }
-    setScratchpadTabs([...scratchpadTabs, newTab])
-    setCurrentScratchpadTabId(newTab.id)
+      addArtifact({
+          id: Date.now(),
+          title: documentData.title,
+          content: documentData.content,
+          type: 'markdown', // Assuming markdown for now
+          fileName: documentData.fileName,
+          filePath: documentData.filePath,
+      });
   }
 
   const handleAttachToChat = (workspaceData) => {
@@ -727,44 +385,79 @@ No purchases in past 90 days: 12,400 customers
       {/* Content with z-index above background */}
       <div className="relative z-10 h-full overflow-hidden">
         <PanelGroup direction="horizontal">
-          <Panel defaultSize={35} minSize={15} maxSize={50}>
-            {/* ChatPanel gets data from Zustand stores + documents/libraries from App state */}
+          {layoutMode !== 'chat_only' && (
+             // If NOT chat_only, we likely have two or three panels.
+             // Standard: Chat | Scratchpad | Docs
+             // Split: Chat | Scratchpad
+             // Artifact Right: Chat | Scratchpad (Same as split effectively for now, or maybe sidebar hidden?)
+             // Let's implement logic:
+             // ChatPanel is always on left unless hidden (no hidden mode yet, except maybe artifact focus?)
+             // Wait, 'chat_only' implies ONLY chat.
+             // 'artifact_right' implies artifact is on right. Chat is on left?
+             // If layoutMode is 'chat_only', we want ONE panel with ChatPanel.
+             // If layoutMode is NOT 'chat_only', we want ChatPanel on left + Scratchpad on right.
+             // Docs are only in 'standard'.
+
+             null
+          )}
+
+          {/* Logic Refined:
+              Standard: [Chat] [Scratchpad] [Docs]
+              Chat Only: [Chat]
+              Artifact Right: [Chat] [Scratchpad]
+              Split: [Chat] [Scratchpad]
+          */}
+
+          {/* Left Panel (Chat) - Always present, but width varies or is single panel */}
+           <Panel defaultSize={layoutMode === 'chat_only' ? 100 : 35} minSize={15} maxSize={layoutMode === 'chat_only' ? 100 : 50}>
             <ChatPanel
               documents={documents}
               libraries={libraries}
               scratchpadTabs={scratchpadTabs}
             />
           </Panel>
-          <PanelResizeHandle className="resize-handle" />
-          <Panel defaultSize={40} minSize={25}>
-            <Scratchpad
-              tabs={scratchpadTabs}
-              currentTabId={currentScratchpadTabId}
-              currentTab={currentScratchpadTab}
-              onUpdate={handleScratchpadUpdate}
-              onUndo={handleScratchpadUndo}
-              onRedo={handleScratchpadRedo}
-              onNewTab={handleNewScratchpadTab}
-              onSelectTab={handleSelectScratchpadTab}
-              onCloseTab={handleCloseScratchpadTab}
-              onRenameTab={handleRenameScratchpadTab}
-              onAddDocument={handleAddToScratchpad}
-              onAttachToChat={handleAttachToChat}
-              documents={documents}
-              libraries={libraries}
-            />
-          </Panel>
-          <PanelResizeHandle className="resize-handle" />
-          <Panel defaultSize={25} minSize={15} maxSize={40}>
-            <DocumentPanel
-              documents={documents}
-              libraries={libraries}
-              onUploadLibrary={handleUploadLibrary}
-              onDeleteLibrary={handleDeleteLibrary}
-              onDeleteDocument={handleDeleteDocument}
-              onAddToScratchpad={handleAddToScratchpad}
-            />
-          </Panel>
+
+          {/* Middle/Right Panel (Scratchpad) - Hidden in chat_only */}
+          {layoutMode !== 'chat_only' && (
+            <>
+                <PanelResizeHandle className="resize-handle" />
+                <Panel defaultSize={40} minSize={25}>
+                    <Scratchpad
+                      tabs={scratchpadTabs}
+                      currentTabId={currentScratchpadTabId}
+                      currentTab={currentScratchpadTab}
+                      onUpdate={handleScratchpadUpdate}
+                      onUndo={handleScratchpadUndo}
+                      onRedo={handleScratchpadRedo}
+                      onNewTab={handleNewScratchpadTab}
+                      onSelectTab={handleSelectScratchpadTab}
+                      onCloseTab={handleCloseScratchpadTab}
+                      onRenameTab={handleRenameScratchpadTab}
+                      onAddDocument={handleAddToScratchpad}
+                      onAttachToChat={handleAttachToChat}
+                      documents={documents}
+                      libraries={libraries}
+                    />
+                </Panel>
+            </>
+          )}
+
+          {/* Rightmost Panel (Docs) - Only in standard */}
+          {layoutMode === 'standard' && (
+            <>
+              <PanelResizeHandle className="resize-handle" />
+              <Panel defaultSize={25} minSize={15} maxSize={40}>
+                <DocumentPanel
+                  documents={documents}
+                  libraries={libraries}
+                  onUploadLibrary={handleUploadLibrary}
+                  onDeleteLibrary={handleDeleteLibrary}
+                  onDeleteDocument={handleDeleteDocument}
+                  onAddToScratchpad={handleAddToScratchpad}
+                />
+              </Panel>
+            </>
+          )}
         </PanelGroup>
       </div>
     </div>

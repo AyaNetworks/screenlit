@@ -11,13 +11,21 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 _message_handler: Optional[Callable] = None
+_connection_handler: Optional[Callable] = None
 _active_connections: List[asyncio.Queue] = []
 
 def set_message_handler(handler):
     global _message_handler
     _message_handler = handler
 
-async def broadcast_message(message: Message):
+def set_connection_handler(handler):
+    global _connection_handler
+    _connection_handler = handler
+
+from typing import Union, Any
+from pydantic import BaseModel
+
+async def broadcast_message(message: Union[Message, BaseModel, Any]):
     dead_queues = []
     for queue in _active_connections:
         try:
@@ -42,6 +50,16 @@ async def receive_message(message: Message):
 async def stream():
     queue = asyncio.Queue()
     _active_connections.append(queue)
+
+    # If there is a connection handler, call it to get initial messages
+    if _connection_handler:
+        try:
+            initial_messages = await _connection_handler()
+            if initial_messages:
+                for msg in initial_messages:
+                    await queue.put(msg)
+        except Exception as e:
+            logger.error(f"Error in connection handler: {e}")
     
     async def event_generator():
         try:

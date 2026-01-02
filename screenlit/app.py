@@ -1,8 +1,10 @@
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .server import router, set_message_handler, broadcast_message
+from .server import router, set_message_handler, broadcast_message, set_connection_handler
 from .types import Message
+from .layout import Layout
+from .artifacts import Artifacts
 from typing import Callable
 import asyncio
 
@@ -16,7 +18,19 @@ class ScreenlitApp:
             allow_headers=["*"],
         )
         self.app.include_router(router)
+        self.layout = Layout()
+        self.artifacts = Artifacts()
         
+        # Register connection handler to sync state
+        set_connection_handler(self._handle_connection)
+
+    async def _handle_connection(self):
+        # Return list of messages to send on new connection
+        messages = []
+        messages.append(self.layout.get_update_message())
+        messages.extend(self.artifacts.get_all_artifacts_updates())
+        return messages
+
     def on_chat_message(self, func: Callable):
         set_message_handler(func)
         return func

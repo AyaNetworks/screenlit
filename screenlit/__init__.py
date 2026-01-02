@@ -7,6 +7,8 @@ _app_instance = ScreenlitApp()
 # Expose the singleton instance methods
 on_chat_message = _app_instance.on_chat_message
 run = _app_instance.run
+layout = _app_instance.layout
+artifacts = _app_instance.artifacts
 
 # Helper for sending messages from user code
 async def send_message(content: str, role: str = "ai"):
