@@ -40,6 +40,11 @@ class ScreenlitApp:
         await broadcast_message(msg)
 
     def run(self, host="0.0.0.0", port=8000):
+        # Check if running via CLI to avoid double execution
+        import os
+        if os.environ.get("SCREENLIT_CLI"):
+            return
+
         # We need to run uvicorn. 
         # Since this is a library, users call `sl.run()`.
         uvicorn.run(self.app, host=host, port=port)
