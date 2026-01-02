@@ -10,6 +10,8 @@ run = _app_instance.run
 layout = _app_instance.layout
 artifacts = _app_instance.artifacts
 app = _app_instance.app
+set_header = _app_instance.set_header
+think = _app_instance.think
 
 # Expose artifact helper methods
 markdown = artifacts.markdown

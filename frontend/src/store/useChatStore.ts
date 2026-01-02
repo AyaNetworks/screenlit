@@ -69,6 +69,9 @@ export const useChatStore = create<ChatStoreState>()(
                 if (message.type === 'layout_update') {
                     useLayoutStore.getState().setLayoutMode(message.mode);
                     useLayoutStore.getState().setSidebarVisible(message.sidebar_visible);
+                    if (message.header_title && message.header_subtitle) {
+                        useLayoutStore.getState().setHeader(message.header_title, message.header_subtitle);
+                    }
                     return;
                 }
 
