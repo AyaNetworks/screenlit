@@ -31,6 +31,7 @@ function App() {
   const addArtifact = useWorkspaceStore((state) => state.addArtifact)
   const updateArtifactContent = useWorkspaceStore((state) => state.updateArtifactContent)
   const setCurrentArtifactId = useWorkspaceStore((state) => state.setCurrentArtifactId)
+  const removeArtifact = useWorkspaceStore((state) => state.removeArtifact)
 
   // Set default artifact if none exists
   const initialized = useRef(false)
@@ -307,8 +308,7 @@ function App() {
   }
 
   const handleCloseScratchpadTab = (tabId) => {
-      // Not implemented in store yet
-      console.log("Close tab not implemented");
+      removeArtifact(tabId);
   }
 
   const handleRenameScratchpadTab = (tabId, newTitle) => {

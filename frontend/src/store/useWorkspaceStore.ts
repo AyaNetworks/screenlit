@@ -29,6 +29,7 @@ interface WorkspaceStoreState {
   // Artifact Actions
   addArtifact: (artifact: Omit<Artifact, 'history' | 'historyIndex'>) => void
   updateArtifactContent: (id: number | string, content: string) => void
+  removeArtifact: (id: number | string) => void
   setCurrentArtifactId: (id: number | string) => void
 }
 
@@ -75,6 +76,30 @@ export const useWorkspaceStore = create<WorkspaceStoreState>()(
         })),
 
     setCurrentArtifactId: (id) => set({ currentArtifactId: id }),
+
+    removeArtifact: (id) =>
+      set((state) => {
+        const newArtifacts = state.artifacts.filter((a) => a.id !== id)
+        let newCurrentId = state.currentArtifactId
+
+        if (state.currentArtifactId === id) {
+          // If closing active tab, switch to nearest one
+          if (newArtifacts.length > 0) {
+            // Try to find index of removed tab
+            const index = state.artifacts.findIndex((a) => a.id === id)
+            // If it was last, take new last (which is index-1). If first, take new first (index 0)
+            const newIndex = Math.min(index, newArtifacts.length - 1)
+            newCurrentId = newArtifacts[newIndex].id
+          } else {
+            newCurrentId = null
+          }
+        }
+
+        return {
+            artifacts: newArtifacts,
+            currentArtifactId: newCurrentId
+        }
+      }),
 
     removeAttachment: (index) =>
       set((state) => ({
