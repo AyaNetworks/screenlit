@@ -60,6 +60,12 @@ class Artifacts:
             ))
         return updates
 
+    def markdown(self, content: str, title: str = "Markdown Artifact"):
+        return self.create(content, title=title, type="markdown")
+
+    def text(self, content: str, title: str = "Text Artifact"):
+        return self.create(content, title=title, type="text")
+
     def html(self, content: str, title: str = "HTML Artifact"):
         return self.create(content, title=title, type="html")
 

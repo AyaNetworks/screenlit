@@ -9,8 +9,11 @@ on_chat_message = _app_instance.on_chat_message
 run = _app_instance.run
 layout = _app_instance.layout
 artifacts = _app_instance.artifacts
+app = _app_instance.app
 
 # Expose artifact helper methods
+markdown = artifacts.markdown
+text = artifacts.text
 html = artifacts.html
 image = artifacts.image
 video = artifacts.video
