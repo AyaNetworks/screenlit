@@ -75,11 +75,40 @@ export const useChatStore = create<ChatStoreState>()(
                 if (message.type === 'artifact_update') {
                     const { action, artifact } = message;
                     if (action === 'create') {
+                        let fileType = 'text/markdown';
+                        if (artifact.type === 'image') fileType = 'image/png';
+                        else if (artifact.type === 'csv') fileType = 'text/csv';
+                        else if (artifact.type === 'pdf') fileType = 'application/pdf';
+                        else if (artifact.type === 'html') fileType = 'text/html';
+                        else if (artifact.type === 'code') fileType = 'text/plain'; // Scratchpad handles language detection via extension in fileType or content? No, Scratchpad uses fileType for codeExtensions logic.
+
+                        // Check Scratchpad logic for code:
+                        // "const extension = fileType?.split('/')[1]"
+                        // so we need 'application/json' or 'text/python'?
+                        // Actually Scratchpad defaults to markdown if unknown.
+
+                        if (artifact.type === 'code') fileType = 'application/json'; // Default to something that triggers code view or just let markdown handle it?
+                        // Let's use 'text/python' for python code if we can detect it, but we don't know language.
+                        // For generic code, 'text/plain' might fall into "Plain text fallback".
+                        // Scratchpad checks: codeExtensions.includes(extension) where extension = fileType.split('/')[1].
+                        // So 'application/javascript' -> 'javascript'. 'javascript' is in codeExtensions?
+                        // codeExtensions = ['json', 'js', 'jsx', 'ts', 'tsx', 'py'...]
+                        // So we need 'text/py' or 'application/py'? No, MIME types are usually 'text/x-python'.
+                        // Let's just set it to 'text/markdown' for code blocks ``` ``` which is safer,
+                        // OR 'application/py' to trigger the specific code view if desired.
+                        // But wait, Scratchpad's code view is just <pre><code>. Markdown handles code blocks better with syntax highlighting.
+                        // So 'code' type might be best served as 'text/markdown' with content wrapped in ``` ```.
+                        // But if the user sends raw code, we want the raw code view.
+                        // Let's use 'application/javascript' as a placeholder for code view trigger if we want that.
+
+                        // However, for 'image', 'csv', 'pdf', 'html', we definitely need the mapping.
+
                         useWorkspaceStore.getState().addArtifact({
                             id: artifact.id,
                             title: artifact.title,
                             content: artifact.content,
-                            type: artifact.type
+                            type: artifact.type,
+                            fileType: fileType
                         });
                         // Switch layout to show artifact if needed
                         useLayoutStore.getState().setLayoutMode('artifact_right');
